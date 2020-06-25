@@ -222,6 +222,7 @@ function Get-MsGraphObject($Path, [switch]$IgnoreNotFound) {
     Log-Verbose "GET $FullUri"
 
     try {
+        $AuthHeader = Test-AuthHeaders($AuthHeader)
         return  Invoke-RestMethod -Method Get -Uri $FullUri -Headers $AuthHeader
     } 
     catch {
@@ -241,6 +242,19 @@ function Get-MsGraphObject($Path, [switch]$IgnoreNotFound) {
 
 ####################################################
 
+function Test-AuthHeaders($AuthHeader) {
+    # Check if the token will expire in the next 5 minutes
+
+    if ($AuthHeader.ExpiresOn -lt [datetime]::UtcNow.AddMinutes(5)) {
+        Log-Info "Auth token will expire in next 5 minutes, renewing token"
+        return Get-AuthToken $Username
+    } 
+
+    return $AuthHeader
+}
+
+####################################################
+
 function Get-MsGraphCollection($Path) {
     $FullUri = "https://$MsGraphHost/$MsGraphVersion/$Path"
     $Collection = @()
@@ -248,6 +262,7 @@ function Get-MsGraphCollection($Path) {
 
     do {
         try {
+            $AuthHeader = Test-AuthHeaders($AuthHeader)
             Log-Verbose "GET $NextLink"
             $Result = Invoke-RestMethod -Method Get -Uri $NextLink -Headers $AuthHeader
             $Collection += $Result.value
@@ -366,7 +381,7 @@ function Get-AuditEvents {
 function Get-ManagedAppRegistrations {
     Log-Info "Getting managed app registrations for User $UPN"
     
-    return Get-MsGraphCollection "`users/$UserId/managedAppRegistrations?`$expand=appliedPolicies,intendedPolicies,operations"
+    return Get-MsGraphCollection "users/$UserId/managedAppRegistrations?`$expand=appliedPolicies,intendedPolicies,operations"
 }
 
 ####################################################
