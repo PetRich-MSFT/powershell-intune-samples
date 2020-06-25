@@ -207,7 +207,7 @@ try {
 
         else {
 
-        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource`?`$filter=managementAgent eq 'mdm' and managementAgent eq 'easmdm'"
+        $uri = "https://graph.microsoft.com/$graphApiVersion/$Resource`?`$filter=managementAgent eq 'mdm' and managementAgent eq 'easmdm' and managementAgent eq 'googleCloudDevicePolicyController'"
         Write-Warning "EAS Devices are excluded by default, please use -IncludeEAS if you want to include those devices"
         Write-Host
 
@@ -333,23 +333,31 @@ if($Devices){
     Write-Host "Device found:" $Device.deviceName -ForegroundColor Yellow
     Write-Host
 
-    $uri = "https://graph.microsoft.com/beta/deviceManagement/manageddevices('$DeviceID')?`$select=hardwareInformation"
-    $Hardware = (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).hardwareInformation
+    $uri = "https://graph.microsoft.com/beta/deviceManagement/manageddevices('$DeviceID')?`$select=hardwareinformation,iccid,udid,ethernetMacAddress"
 
-    $DeviceNoHardware = $Device | select * -ExcludeProperty hardwareInformation,deviceActionResults,userId,imei,manufacturer,model,isSupervised,isEncrypted,serialNumber,meid,subscriberCarrier
-    $HardwareExcludes = $Hardware | select * -ExcludeProperty sharedDeviceCachedUsers,phoneNumber
+    $DeviceInfo = (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get)
+
+    $DeviceNoHardware = $Device | select * -ExcludeProperty hardwareInformation,deviceActionResults,userId,imei,manufacturer,model,isSupervised,isEncrypted,serialNumber,meid,subscriberCarrier,iccid,udid,ethernetMacAddress
+    $HardwareExcludes = $DeviceInfo.hardwareInformation | select * -ExcludeProperty sharedDeviceCachedUsers,phoneNumber
+    $OtherDeviceInfo = $DeviceInfo | select iccid,udid,ethernetMacAddress
 
         $Object = New-Object System.Object
 
             foreach($Property in $DeviceNoHardware.psobject.Properties){
 
-            $Object | Add-Member -MemberType NoteProperty -Name $Property.Name -Value $Property.Value
+                $Object | Add-Member -MemberType NoteProperty -Name $Property.Name -Value $Property.Value
 
             }
 
             foreach($Property in $HardwareExcludes.psobject.Properties){
 
-            $Object | Add-Member -MemberType NoteProperty -Name $Property.Name -Value $Property.Value
+                $Object | Add-Member -MemberType NoteProperty -Name $Property.Name -Value $Property.Value
+
+            }
+
+            foreach($Property in $OtherDeviceInfo.psobject.Properties){
+
+                $Object | Add-Member -MemberType NoteProperty -Name $Property.Name -Value $Property.Value
 
             }
 

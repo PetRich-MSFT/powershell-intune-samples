@@ -1,4 +1,4 @@
-﻿
+
 <#
 
 .COPYRIGHT
@@ -196,7 +196,7 @@ $Resource = "deviceManagement/auditEvents/getAuditCategories"
     }
     
 }
-    
+
 ####################################################
 
 Function Get-AuditEvents(){

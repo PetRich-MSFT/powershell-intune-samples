@@ -620,6 +620,35 @@ break
 #### Add-MDMApplication Function
 This function is used to add an MDM Application to the Intune Service. It supports a single parameter -JSON as an input to the function to pass the JSON data to the service.
 
-```PowerShellW
+```PowerShell
 Add-MDMApplication -JSON $JSON
 ```
+
+### 19. Application_InstallStatus.ps1
+This script gets the installation statistics for an application in the Intune Service that you have authenticated with.
+
+#### Get-IntuneApplication Function
+This function is used to get all MDM applications from the Intune Service and has a filter to only show applications where the odata.type doesn't contain "managed" or "iosVppApp". It supports a single parameter -Name as an input to the function which can be used to filter on a single application.
+
+```PowerShell
+# Returns all MDM applications in the Intune Service
+Get-IntuneApplication
+
+# Returns an application by Name in the Intune Service
+Get-IntuneApplication -Name "Microsoft Excel"
+
+# Returns all MDM application and selects the displayName, id and type
+Get-IntuneApplication | select displayName,id,'@odata.type' | sort displayName
+```
+
+#### Get-InstallStatusForApp
+This function will get all of the installation stats for an application, given the applications ID. We can get the application's ID with the "Application_MDM_Get.ps1" script and the Get-IntuneApplication function.
+
+````PowerShell
+# Sample
+Get-InstallaStatusForApp -AppId 1111-22222-33333-44444-55555
+
+$Application = Get-IntuneApplication -Name "Microsoft Teams"
+Get-InstallaStatusForApp -AppId $Application.id
+```
+

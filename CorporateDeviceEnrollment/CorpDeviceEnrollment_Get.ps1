@@ -165,13 +165,31 @@ NAME: Get-CorporateDeviceIdentifiers
 
 [cmdletbinding()]
 
+param
+(
+    [Parameter(Mandatory=$false)]
+    $DeviceIdentifier
+)
+
 
 $graphApiVersion = "beta"
-$Resource = "deviceManagement/importedDeviceIdentities"
 
     try {
 
-    $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)"
+        if($DeviceIdentifier){
+
+            $Resource = "deviceManagement/importedDeviceIdentities?`$filter=contains(importedDeviceIdentifier,'$DeviceIdentifier')"
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)"
+
+        }
+
+        else {
+
+            $Resource = "deviceManagement/importedDeviceIdentities"
+            $uri = "https://graph.microsoft.com/$graphApiVersion/$($Resource)"
+
+        }
+
     (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).value
 
     }
